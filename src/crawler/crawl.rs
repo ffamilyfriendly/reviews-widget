@@ -1,6 +1,6 @@
-use std::error::Error;
+use std::{error::Error, sync::Arc};
 
-use headless_chrome::{Browser, browser::default_executable, Element};
+use headless_chrome::{Browser, browser::{default_executable, transport::{Transport, SessionId}, tab::RequestPausedDecision}, Element, Tab, protocol::cdp::{Target::SessionID, Fetch::{events::RequestPausedEvent, FailRequest}, Network::ErrorReason}};
 //use headless_chrome::protocol::cdp::Page;
 
 #[derive(Debug)]
@@ -25,6 +25,8 @@ pub enum EntityTypes {
     Server
 }
 
+
+// I straight up stole this from stackoverflow. I'm as lost as you are
 fn get_attr(elt: &headless_chrome::Element, attr: &str) -> String {
     match elt.call_js_fn(&format!("function() {{ return this.getAttribute(\"{}\"); }}", attr), vec![], true).unwrap().value {
         Some(s) => s.to_string(),
@@ -32,43 +34,33 @@ fn get_attr(elt: &headless_chrome::Element, attr: &str) -> String {
     }
 }
 
-pub fn crawl_entity( id: String, entity_type: EntityTypes ) -> Result<ReviewsListing, Box<dyn Error>> {
-    let browser = Browser::new(
-        headless_chrome::LaunchOptionsBuilder::default()
-        .path(Some(default_executable().unwrap()))
-        .headless(false)
-        .sandbox(false)
-        .build()
-        .expect("Something went real wrong")
-    )?;
-    let tab = browser.new_tab()?;
-    
-    
-    let url: String = match entity_type {
-        EntityTypes::Bot => format!("https://top.gg/bot/{}#reviews", id),
-        EntityTypes::Server => format!("https://top.gg/server/{}#reviews", id)
-    };
-    tab.navigate_to(&url)?;
-    tab.wait_until_navigated()?;
-
-    let avg_reviews_element = tab.find_element("p[aria-label='average score']")?;
-    let reviews_count_element = tab.find_element("div.css-13igg3x>p")?;
-    let reviews_list_element = tab.find_elements("div.chakra-stack.css-587fn9>.css-ay5wn")?;
-
-    let mut reviews_list: Vec<Review> = Vec::new(); 
-    
-    for review in reviews_list_element {
+pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn Error>> {
+    let mut reviews_list: Vec<Review> = Vec::new();
+    for review in reviews {
+        /*
+            Scroll to the review.
+            This is required as otherwise the profile picture does not load and instead returns garbage base64 image data with height & width of 0
+            I swear to god it took me ages to debug this as when I debugged I had to scroll to the images in the first place which obviously loaded them
+            my existence is a mix of booze filled adventures and pure pain
+        */
+        review.scroll_into_view()?;
+        // Ehem... anyhow :D here we get some elements and what elements we get should be pretty clear by my epic and pattented naming convention
         let ratings_element = review.find_element(".chakra-stack.css-trv47m")?;
         let username_element = review.find_element("a.css-1hongtb")?;
         let review_text_element = review.find_element("p.css-542wex")?;
         let review_likes_element = review.find_element("p.css-2qyx8u")?;
+        // there are hooligans out there who do not have a discord profile picture. For some dumb reason these "people" must be handled
         let image_element: Option<Element<'_>> = match review.find_element(".css-1emigkr>span>img") {
             Ok(e) => Some(e),
             Err(_) => None
         };
 
+        // get the "data-stars" attribute and filter out any non-digit characters 
         let stars: String = get_attr(&ratings_element, "data-stars").chars().filter(|c| c.is_digit(10)).collect();
 
+        println!("...done");
+
+        // push the silly review to our silly little reviews list
         reviews_list.push( Review {
             display_name: username_element.get_inner_text()?,
             votes: review_likes_element.get_inner_text()?.parse::<u8>()?,
@@ -82,6 +74,84 @@ pub fn crawl_entity( id: String, entity_type: EntityTypes ) -> Result<ReviewsLis
             },
         } )
     }
+    Ok(reviews_list)
+}
+
+pub fn crawl_entity( id: String, entity_type: EntityTypes ) -> Result<ReviewsListing, Box<dyn Error>> {
+    let browser = Browser::new(
+        headless_chrome::LaunchOptionsBuilder::default()
+        .path(Some(default_executable().unwrap()))
+        .headless(false)
+        .sandbox(false)
+        .build()
+        .expect("Something went real wrong")
+    )?;
+
+    let tab = browser.new_tab()?;
+    // Enabling fetch so we can intercept requests
+    tab.enable_fetch(None, None)?;
+
+    /*
+        Top.gg loads some "we value some privacy" element from an advertiser who obviously does not value or privacy.
+        In fact, it values the very opposite as that is how it makes money.
+        This element is inside an iframe and when shown also blocks scrolling on the main top.gg page.
+
+        We deal with this by simply blocking the iframe from loading in the first place :)
+    */
+    tab.enable_request_interception(Arc::new(
+         | _transport: Arc<Transport>, _session_id: SessionId, intercepted: RequestPausedEvent | {
+            if intercepted.params.request.url.contains("privacy-mgmt.com") {
+                return RequestPausedDecision::Fail(FailRequest { request_id: intercepted.params.request_id, error_reason: ErrorReason::BlockedByClient });
+            }
+            return RequestPausedDecision::Continue(None);
+        }
+    ))?;
+    
+    
+    let url: String = match entity_type {
+        EntityTypes::Bot => format!("https://top.gg/bot/{}#reviews", id),
+        EntityTypes::Server => format!("https://top.gg/server/{}#reviews", id)
+    };
+    tab.navigate_to(&url)?;
+
+    // Gets all the buttons from the bottom row that you can click to go to that review page
+    let mut reviews_pages_elements = tab.wait_for_elements(".chakra-stack.css-ztemmk>button")?;
+    // Remove the first button as it is page 1 and we are already on page 1
+    reviews_pages_elements.remove(0);
+    let avg_reviews_element = tab.find_element("p[aria-label='average score']")?;
+    let reviews_count_element = tab.find_element("div.css-13igg3x>p")?;
+
+    let mut reviews_list: Vec<Review> = Vec::new(); 
+
+    // This aptly named function does indeed do "thing".
+    // the thing is:
+    fn do_thing(reviews_list: &mut Vec<Review>, tab: &Arc<Tab>) -> Result<(), Box<dyn Error>> {
+        println!("getting elements:");
+        // Get a Vec (array in un-based langs) that contains all the review elements
+        let reviews_list_element = tab.wait_for_elements("div.chakra-stack.css-587fn9>.css-ay5wn")?;
+        // Pass this Vec to the actuall review parser
+        reviews_list.append(&mut crawl_reviews(reviews_list_element)?);
+        Ok(())
+    }
+
+    do_thing(&mut reviews_list, &tab)?;
+
+    // below is commented code for loading more pages. It does not work :(
+
+    /*for page_button in reviews_pages_elements {
+        println!("clicking");
+        page_button.click()?;
+        do_thing(&mut reviews_list, &tab)?;
+    }*/
+
+    /*while has_more {
+        let reviews_list_element = tab.wait_for_elements("div.chakra-stack.css-587fn9>.css-ay5wn")?;
+        println!("dealing with page:");
+
+        // pages list: chakra-stack css-ztemmk
+
+        reviews_list.append(&mut crawl_reviews(reviews_list_element)?);
+    }*/
 
     Ok(ReviewsListing {
         id: id,
