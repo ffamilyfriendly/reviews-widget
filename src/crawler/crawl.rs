@@ -1,7 +1,7 @@
-use std::{error::Error, sync::Arc};
+use std::{error::Error, sync::Arc, path::PathBuf};
 
-use headless_chrome::{Browser, browser::{default_executable, transport::{Transport, SessionId}, tab::RequestPausedDecision}, Element, Tab, protocol::cdp::{Target::SessionID, Fetch::{events::RequestPausedEvent, FailRequest}, Network::ErrorReason}};
-//use headless_chrome::protocol::cdp::Page;
+use headless_chrome::{Browser, browser::{default_executable, transport::{Transport, SessionId}, tab::RequestPausedDecision}, Element, Tab, protocol::cdp::{Fetch::{events::RequestPausedEvent, FailRequest}, Network::ErrorReason}};
+use urlencoding::decode;
 
 #[derive(Debug)]
 pub struct Review {
@@ -32,6 +32,12 @@ fn get_attr(elt: &headless_chrome::Element, attr: &str) -> String {
         Some(s) => s.to_string(),
         _ => panic!("Expected string"),
     }
+}
+
+fn sanetize_image_url( url: String ) -> String {
+    let split: Vec<&str> = url.split("?url=").collect();
+    
+    decode(split.get(1).unwrap()).expect("UFT-8").to_string()
 }
 
 pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn Error>> {
@@ -68,7 +74,12 @@ pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn 
             rating: stars.parse::<u16>()?,
             profile_picture: match image_element {
                 Some(e) => {
-                    Some(get_attr(&e, "src"))
+                    let src_attr = get_attr(&e, "src");
+                    if src_attr.contains("base64") {
+                        None
+                    } else {
+                        Some(sanetize_image_url(src_attr))
+                    }
                 },
                 None => None
             },
@@ -77,17 +88,24 @@ pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn 
     Ok(reviews_list)
 }
 
-pub fn crawl_entity( id: String, entity_type: EntityTypes ) -> Result<ReviewsListing, Box<dyn Error>> {
+pub fn crawl_entity( id: String, entity_type: EntityTypes, use_google_cache: Option<bool> ) -> Result<ReviewsListing, Box<dyn Error>> {
+    let mut path = PathBuf::new();
+    path.push("/home/john/.config/chromium/Default");
     let browser = Browser::new(
         headless_chrome::LaunchOptionsBuilder::default()
         .path(Some(default_executable().unwrap()))
         .headless(false)
         .sandbox(false)
+        .user_data_dir(Some(path))
         .build()
         .expect("Something went real wrong")
     )?;
 
     let tab = browser.new_tab()?;
+    tab.set_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36", Some("sv"), None)?;
+    //tab.enable_stealth_mode()?;
+
+    //tab.enable_stealth_mode()?;
     // Enabling fetch so we can intercept requests
     tab.enable_fetch(None, None)?;
 
@@ -100,25 +118,33 @@ pub fn crawl_entity( id: String, entity_type: EntityTypes ) -> Result<ReviewsLis
     */
     tab.enable_request_interception(Arc::new(
          | _transport: Arc<Transport>, _session_id: SessionId, intercepted: RequestPausedEvent | {
-            if intercepted.params.request.url.contains("privacy-mgmt.com") {
-                return RequestPausedDecision::Fail(FailRequest { request_id: intercepted.params.request_id, error_reason: ErrorReason::BlockedByClient });
+            let blocked_origins = vec![ "privacy-mgmt.com", "kumo.network-n.com", "moatads.com", "scorecardresearch.com", "videoplayerhub.com", "permutive.app", "pbstck.com", "cpx.to", "primis.tech", "cdn-cgi/images/trace/managed/js" ];
+            for blocked_origin in blocked_origins {
+                if intercepted.params.request.url.contains(blocked_origin) {
+                    println!("blocked request {} due to containing blocked origin {}", intercepted.params.request.url, blocked_origin);
+                    return RequestPausedDecision::Fail(FailRequest { request_id: intercepted.params.request_id, error_reason: ErrorReason::BlockedByClient });
+                }
             }
+            println!("did not block: {}", intercepted.params.request.url);
             return RequestPausedDecision::Continue(None);
         }
     ))?;
     
-    
+    let mut google_cache_prefix = "";
+    if use_google_cache.unwrap_or(false) {
+        google_cache_prefix = "https://webcache.googleusercontent.com/search?q=cache:";
+    }
     let url: String = match entity_type {
-        EntityTypes::Bot => format!("https://top.gg/bot/{}#reviews", id),
-        EntityTypes::Server => format!("https://top.gg/server/{}#reviews", id)
+        EntityTypes::Bot => format!("{}https://top.gg/bot/{}", google_cache_prefix, id),
+        EntityTypes::Server => format!("{}https://top.gg/server/{}", google_cache_prefix, id)
     };
     tab.navigate_to(&url)?;
 
     // Gets all the buttons from the bottom row that you can click to go to that review page
-    let mut reviews_pages_elements = tab.wait_for_elements(".chakra-stack.css-ztemmk>button")?;
+    //let mut reviews_pages_elements = tab.wait_for_elements(".chakra-stack.css-ztemmk>button")?;
     // Remove the first button as it is page 1 and we are already on page 1
-    reviews_pages_elements.remove(0);
-    let avg_reviews_element = tab.find_element("p[aria-label='average score']")?;
+    //reviews_pages_elements.remove(0);
+    let avg_reviews_element = tab.wait_for_element("p[aria-label='average score']")?;
     let reviews_count_element = tab.find_element("div.css-13igg3x>p")?;
 
     let mut reviews_list: Vec<Review> = Vec::new(); 

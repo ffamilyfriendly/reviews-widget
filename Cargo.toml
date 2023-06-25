@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 headless_chrome = {git = "https://github.com/atroche/rust-headless-chrome", features = ["fetch"]}
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
+urlencoding = "2.1.2"
