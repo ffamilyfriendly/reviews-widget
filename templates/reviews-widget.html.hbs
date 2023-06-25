@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+    <link rel="stylesheet" href="{{css_file}}" />
+</head>
+<body>
+    <h1>Hello!</h1>
+    <div id="reviews-list">
+        {{#each reviews}}
+            <div class="review-item">
+                <img class="review-item-image" src="{{this.author_profile_picture}}" alt="{{this.author_display_name}}" />
+                <div class="review-item-stack">
+                    <div>
+                        <p class="review-item-username">{{this.author_display_name}}</p>
+                    </div>
+                    <div>
+                        <p class="review-item-text">{{this.content}}</p>
+                    </div>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</body>
+</html>
