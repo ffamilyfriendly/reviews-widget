@@ -1,9 +1,9 @@
-use std::{error::Error, sync::Arc, path::PathBuf};
+use std::{error::Error, sync::Arc, path::PathBuf, collections::HashMap};
 
 use headless_chrome::{Browser, browser::{default_executable, transport::{Transport, SessionId}, tab::RequestPausedDecision}, Element, Tab, protocol::cdp::{Fetch::{events::RequestPausedEvent, FailRequest}, Network::ErrorReason}};
 use urlencoding::decode;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Review {
     pub display_name: String,
     pub profile_picture: Option<String>,
@@ -12,7 +12,7 @@ pub struct Review {
     pub votes: u8
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReviewsListing {
     pub id: String,
     pub ratings_avg: f32,
@@ -24,6 +24,7 @@ pub enum EntityTypes {
     Bot,
     Server
 }
+
 
 
 // I straight up stole this from stackoverflow. I'm as lost as you are
@@ -40,7 +41,7 @@ fn sanetize_image_url( url: String ) -> String {
     decode(split.get(1).unwrap()).expect("UFT-8").to_string()
 }
 
-pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn Error>> {
+fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn Error>> {
     let mut reviews_list: Vec<Review> = Vec::new();
     for review in reviews {
         /*
@@ -88,7 +89,7 @@ pub fn crawl_reviews( reviews: Vec<Element<'_>>) -> Result<Vec<Review>, Box<dyn 
     Ok(reviews_list)
 }
 
-pub fn crawl_entity( id: String, entity_type: EntityTypes, use_google_cache: Option<bool> ) -> Result<ReviewsListing, Box<dyn Error>> {
+fn crawl_entity( id: String, entity_type: EntityTypes, use_google_cache: Option<bool> ) -> Result<ReviewsListing, Box<dyn Error>> {
     let mut path = PathBuf::new();
     path.push("/home/john/.config/chromium/Default");
     let browser = Browser::new(
@@ -121,11 +122,9 @@ pub fn crawl_entity( id: String, entity_type: EntityTypes, use_google_cache: Opt
             let blocked_origins = vec![ "privacy-mgmt.com", "kumo.network-n.com", "moatads.com", "scorecardresearch.com", "videoplayerhub.com", "permutive.app", "pbstck.com", "cpx.to", "primis.tech", "cdn-cgi/images/trace/managed/js" ];
             for blocked_origin in blocked_origins {
                 if intercepted.params.request.url.contains(blocked_origin) {
-                    println!("blocked request {} due to containing blocked origin {}", intercepted.params.request.url, blocked_origin);
                     return RequestPausedDecision::Fail(FailRequest { request_id: intercepted.params.request_id, error_reason: ErrorReason::BlockedByClient });
                 }
             }
-            println!("did not block: {}", intercepted.params.request.url);
             return RequestPausedDecision::Continue(None);
         }
     ))?;
@@ -186,3 +185,36 @@ pub fn crawl_entity( id: String, entity_type: EntityTypes, use_google_cache: Opt
         reviews_count: reviews_count_element.get_inner_text()?.split(' ').collect::<Vec<&str>>()[0].parse::<u16>()?
     })
 }
+
+pub struct CrawlerClient {
+    cache: HashMap<String, ReviewsListing>
+}
+
+impl CrawlerClient {
+    pub fn new() -> CrawlerClient {
+        CrawlerClient { cache:  HashMap::new() }
+    }
+
+    pub fn get_bot(&mut self, id: String) -> Result<ReviewsListing, Box<dyn Error>> {
+        if self.cache.contains_key(&id) {
+            return Ok(self.cache.get(&id).unwrap().clone())
+        }
+        match crawl_entity(id.to_string(), EntityTypes::Bot, None) {
+            Ok(entity_listing) => {
+                self.cache.insert(id.clone(), entity_listing.clone());
+                return Ok(entity_listing)
+            },
+            Err(_) => {
+                match crawl_entity(id.to_string(), EntityTypes::Bot, Some(true)) {
+                    Ok(entity_listing) => {
+                        self.cache.insert(id.clone(), entity_listing.clone());
+                        return Ok(entity_listing)
+                    },
+                    Err(e) => Err(e)
+                }
+            }
+        }
+    }
+}
+
+
