@@ -1,7 +1,7 @@
-use std::{error::Error, cmp::{max, min}, collections::{HashMap, HashSet}};
+use std::{error::Error, collections::{HashMap, HashSet}};
 use serde::{Deserialize, Serialize};
 use reqwest;
-use chrono::{DateTime, Datelike};
+use chrono;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Review {
@@ -11,7 +11,8 @@ pub struct Review {
     pub content: String,
     pub author_display_name: String,
     pub author_profile_picture: String,
-    score_factor: u16
+    pub score_factor: u8,
+    pub score_breakdown: String
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -39,17 +40,16 @@ struct RawApiResponse {
     poster: RawApiPoster
 }
 
-fn calculate_score_factor( rev_data: &RawApiResponse ) -> u16 {
+#[repr(u8)]
+#[derive(Clone)]
+enum Score {
+    Bad = 0,
+    Minimal = 1,
+    Good = 2,
+    Great = 3,
+}
 
-    /*
-        TODO: I kinda wanna refractor this until the result is a float where a 1.0 means highest relevance
-        and 0.0 means zero relevance. I'm no good at these type of algos but I'll take a peep around the internet for inspiration
-
-        works decently for now
-    */
-
-    let mut score: u16 = 0;
-
+fn calculate_score_factor( rev_data: &RawApiResponse ) -> (u8, String) {
     // Create a HashSet with all the "words" (segments of text terminated by ' ')
     let words: HashSet<&str> = rev_data.content.split(" ").collect();
 
@@ -57,24 +57,37 @@ fn calculate_score_factor( rev_data: &RawApiResponse ) -> u16 {
     let timestamp_arr: Vec<u32> = rev_data.timestamp[..10].split("-").map(|x| x.parse::<u32>().unwrap_or(2016)).collect();
 
     // Get the number of days ago the review was submitted
-    let days_since: u16 = (|| {
+    let date_score: Score = (|| {
         let current_date: chrono::NaiveDate = chrono::UTC::now().naive_utc().date();
         let review_date = chrono::NaiveDate::from_ymd_opt(timestamp_arr[0] as i32, timestamp_arr[1], timestamp_arr[2]).unwrap();
-        let delta = current_date - review_date;
+        let delta_days = (current_date - review_date).num_days();
 
-        return delta.num_days() as u16;
+        match delta_days {
+            0..=31 => Score::Great,
+            32..=182 => Score::Good,
+            183..=365 => Score::Minimal,
+            _ => Score::Bad
+        }
     })();
 
     // divide the len of unique words by 2 and return that OR 12 (whichever is smallest) as score
-    score += min(( words.len() as f32 / 2.0) as u16, 12);
-    score += min(max( 0,  365 - days_since as i32), 100) as u16;
-    score += rev_data.votes / 2;
+    let word_count_score: Score = match words.len() {
+        2..=7 => Score::Minimal,
+        8..=15 => Score::Good,
+        16..=100 => Score::Great,
+        _ => Score::Bad
+    };
 
-    // Dunno if I actually want to rank based on the rating
-    // as I want the widget to be fair but relevant
-    score += rev_data.score as u16;
+    let votes_relevant_score: Score = match rev_data.votes {
+        1..=5 => Score::Minimal,
+        6..=20 => Score::Good,
+        21.. => Score::Great,
+        _ => Score::Bad
+    };
 
-    score
+    let good_vote_score = (rev_data.score == 100) as u8;
+
+    (good_vote_score + (date_score.clone() as u8) + (word_count_score.clone() as u8) + (votes_relevant_score.clone() as u8), format!("w: {}, t: {}, v: {}, r: {}", word_count_score as u8, date_score as u8, votes_relevant_score as u8, good_vote_score))
 }
 
 async fn fetch_entity_reviews( id: String ) -> Result<ReviewsListing, Box<dyn Error>> {
@@ -91,7 +104,20 @@ async fn fetch_entity_reviews( id: String ) -> Result<ReviewsListing, Box<dyn Er
                 reviews_count += 1;
                 reviews_score_total += x.score as u16;
 
-                Review { score_factor: calculate_score_factor(&x), rating: ((x.score as f32 / 100.0) * 5.0) as u8, timestamp: x.timestamp[..10].to_string(), votes: x.votes, content: x.content, author_display_name: x.poster.username, author_profile_picture: x.poster.avatar.unwrap_or("".to_string()) }
+                let temp_score_factor = calculate_score_factor(&x);
+
+                let avatar: String = match x.poster.avatar {
+                    Some(img_link) => {
+                        if img_link.starts_with("https://") {
+                            img_link
+                        } else {
+                            "https://notused.example.com".to_string()
+                        }
+                    },
+                    None => "https://notused.example.com".to_string()
+                };
+
+                Review { score_factor: temp_score_factor.0, score_breakdown: temp_score_factor.1, rating: ((x.score as f32 / 100.0) * 5.0) as u8, timestamp: x.timestamp[..10].to_string(), votes: x.votes, content: x.content, author_display_name: x.poster.username, author_profile_picture: avatar }
             }).collect();
         if result.len() == 0 {
             break;
