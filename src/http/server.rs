@@ -4,14 +4,21 @@ use rocket::{State, fs::NamedFile};
 use rocket_dyn_templates::{Template, context};
 use crate::{AppState};
 
-#[get("/embed/<id>?<css>")]
-pub async fn generate_embed( id: String, css: Option<String>, state: &State<AppState> ) -> Template {
+#[get("/embed/<id>?<css>&<limit>")]
+pub async fn generate_embed( id: String, css: Option<String>, limit: Option<usize>, state: &State<AppState> ) -> Template {
     let shared_client = state.inner();
     let css_file = css.unwrap_or("/standard.css".into());
+    let reviews_limit = limit.unwrap_or(10);
 
     match shared_client.client.lock().await.get_entity(id).await {
-        Ok(entity_listing) => Template::render("reviews-widget", context!{ avg_votes: entity_listing.ratings_avg, reviews_count: entity_listing.reviews_count, reviews: entity_listing.reviews, css_file } ),
-        Err(_e) => Template::render("error", context! { message: "something went wrong" })
+        Ok(mut entity_listing) => {
+            entity_listing.reviews.truncate(reviews_limit);
+            Template::render("reviews-widget", context!{ avg_votes: entity_listing.ratings_avg, reviews_count: entity_listing.reviews_count, reviews: entity_listing.reviews, css_file } )
+        },
+        Err(e) => {
+            println!("something went dookie: {}", e);
+            Template::render("error", context! { message: e.to_string() })
+        }
     }
 }
 

@@ -5,6 +5,8 @@ extern crate rocket;
 
 use rocket::tokio::sync::Mutex;
 use rocket_dyn_templates::Template;
+use rocket::shield::Shield;
+use rocket::shield::{Frame};
 
 
 pub mod fetcher;
@@ -14,10 +16,16 @@ pub struct AppState {
     client: Mutex<fetcher::fetch::TopClient>
 }
 
+fn get_shield() -> Shield {
+    Shield::default()
+        .disable::<Frame>()
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .manage( AppState { client: Mutex::new(fetcher::fetch::TopClient::new()) } )
         .attach(Template::fairing())
+        .attach(get_shield())
         .mount("/", http::routes())
 }

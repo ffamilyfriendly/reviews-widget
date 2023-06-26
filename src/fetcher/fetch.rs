@@ -24,7 +24,7 @@ pub struct ReviewsListing {
 struct RawApiPoster {
     id: String,
     username: String,
-    avatar: String
+    avatar: Option<String>
 }
 
 #[derive(Deserialize, Serialize)]
@@ -37,14 +37,6 @@ struct RawApiResponse {
     poster: RawApiPoster
 }
 
-pub enum EntityTypes {
-    Bot,
-    Server
-}
-
-
-
-
 
 async fn fetch_entity_reviews( id: String ) -> Result<ReviewsListing, Box<dyn Error>> {
     
@@ -53,13 +45,14 @@ async fn fetch_entity_reviews( id: String ) -> Result<ReviewsListing, Box<dyn Er
     let mut reviews_list: Vec<Review> = Vec::new();
 
     for page in 1..5 {
+        println!("page {} of entity {}", page, &id);
         let topgg_reviews_url = format!("https://top.gg/api/client/entities/{}/reviews?page={}", &id, page);
         let mut result: Vec<Review> = reqwest::get(topgg_reviews_url).await?.json::<Vec<RawApiResponse>>().await?
             .into_iter().map(|x| {
                 reviews_count += 1;
                 reviews_score_total += x.score as u16;
 
-                Review { rating: ((x.score as f32 / 100.0) * 5.0) as u8, timestamp: x.timestamp, votes: x.votes, content: x.content, author_display_name: x.poster.username, author_profile_picture: x.poster.avatar }
+                Review { rating: ((x.score as f32 / 100.0) * 5.0) as u8, timestamp: x.timestamp[..10].to_string(), votes: x.votes, content: x.content, author_display_name: x.poster.username, author_profile_picture: x.poster.avatar.unwrap_or("".to_string()) }
             }).collect();
         if result.len() == 0 {
             break;
@@ -94,7 +87,13 @@ impl TopClient {
             return Ok(self.cache.get(&id).unwrap().clone())
         }
 
-        Ok(fetch_entity_reviews(id.to_string()).await?)
+        match fetch_entity_reviews(id.to_string()).await {
+            Ok(entity_reviews) => {
+                self.cache.insert(id, entity_reviews.clone());
+                Ok(entity_reviews)
+            },
+            Err(e) => Err(e)
+        }
     }
 }
 

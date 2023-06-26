@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+        }
+
+        body, html {
+            background-color: #121212;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        #showcase {
+            background-color: rgba(253, 253, 253, 0.04);
+            padding: 3em;
+            border-radius: .3em;
+        }
+
+        .low-lr {
+            width: 100%;
+            gap: 1rem;
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        button {
+            background-color: #ff3366;
+            padding: 0.5rem;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: .2em;
+            cursor: pointer;
+            border: none;
+            color: white;
+        }
+
+        .input-wrapper {
+            display: inline-flex;
+            background-color: #ff336699;
+            gap: 0.5em;
+            border-radius: .2em;
+            overflow: hidden;
+        }
+
+        .input-wrapper > * {
+            padding: 0.5rem;
+        }
+
+        .input-wrapper > p {
+            display: block;
+            font-weight: bold;
+            background-color: #ff3366;
+        }
+
+        .input-wrapper > input {
+            background-color: transparent;
+            color: whitesmoke;
+            font-size: 1rem;
+            border: 0;
+        }
+
+        progress {
+            width: 100%;
+        }
+
+        iframe {
+            height: 40vh;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="showcase">
+        <h1>Top.gg reviews widget</h1>
+        <div class="row-lr">
+            <div class="input-wrapper">
+                <p>entity id</p>
+                <input id="entityId" type="text" value="870715447136366662" />
+            </div>
+            <button onclick="reloadIframe(getEntId(), 0)">reload</button>
+            <button onclick="reloadIframe(getEntId(), 30)">reload x30</button>
+        </div>
+        <iframe loading="lazy" style="border:0;" width="100%" src="http://0.0.0.0:3001/embed/870715447136366662">
+            your browser does not support iframes
+        </iframe>
+        <progress max="30" value="0"></progress>
+        <div class="low-lr">
+            <p><b>lowest load time:</b> <span id="lowestLoad"></span>ms</p>
+            <p><b>highest load time:</b> <span id="highestLoad"></span>ms</p>
+            <p><b>avg load time:</b> <span id="avgLoad"></span>ms</p>
+        </div>
+    </div>
+
+    <script>
+        let start = Date.now()
+        let iframe;
+
+        // statistics
+        let lowestLoad = Number.MAX_SAFE_INTEGER
+        let highestLoad = 0
+        let avgLoad = 0
+        let timesLoaded = 0
+        
+        // debug
+        let reloadTimes = 0
+        let lastQueriedUrl = ""
+
+        document.addEventListener("DOMContentLoaded", () => {
+            iframe = document.querySelector("iframe")
+
+            iframe.addEventListener("load", onEndLoad)
+        })
+
+        const getEntId = () => {
+            const entityId = document.getElementById("entityId").value.trim()
+            if(entityId === "159985870458322944") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank")
+            return "http://0.0.0.0:3001/embed/" + entityId + "?limit=10"
+        }
+
+        const reloadIframe = (url = "http://0.0.0.0:3001/embed/870715447136366662?limit=10", times = 0) => {
+            if(!url && !lastQueriedUrl) lastQueriedUrl = "http://0.0.0.0:3001/embed/870715447136366662?limit=10"
+            if(url && (url !== lastQueriedUrl)) {
+                lowestLoad = Number.MAX_SAFE_INTEGER
+                highestLoad = 0
+                avgLoad = 0
+                timesLoaded = 0
+                lastQueriedUrl = url
+            }
+            if(iframe) {
+                console.log("reloading")
+                start = Date.now()
+                iframe.setAttribute("src", lastQueriedUrl)
+                reloadTimes = times
+            }
+        }
+
+        const onEndLoad = () => {
+            const delta = Date.now() - start
+            avgLoad += delta
+            timesLoaded += 1
+            if(delta > highestLoad) highestLoad = delta
+            if(delta < lowestLoad) lowestLoad = delta
+
+            document.getElementById("lowestLoad").innerText = lowestLoad
+            document.getElementById("highestLoad").innerText = highestLoad
+            document.getElementById("avgLoad").innerText = (avgLoad/timesLoaded).toFixed(1)
+
+            if(reloadTimes) {
+                reloadTimes -= 1
+                const prog = document.querySelector("progress")
+                prog.setAttribute("value", 30 - reloadTimes)
+                reloadIframe(null, reloadTimes)
+            }
+
+        }
+    </script>
+</body>
+</html>
