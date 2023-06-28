@@ -23,6 +23,7 @@ jobs:
           toolchain: nightly
           components: clippy
           target: ${{ inputs.target }}
+          profile: minimal
           override: true
             
     - name: Build
