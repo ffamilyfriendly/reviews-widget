@@ -29,6 +29,8 @@ div.#reviews-list
     --star-colour: #ff336699;
     --star-not-filled-colour: #ff336633;
     --star-outline: #ff3366;
+
+    --review-item-background: #322659;
 }
 
 *, *::before, *::after {
@@ -42,20 +44,29 @@ div.#reviews-list
 
 body, html {
     background-color: transparent;
+    height: 100vh;
+    overflow-x: hidden;
 }
 
 
 div#reviews-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
     gap: 1rem;
 }
 
 
 div.review-item {
-    width: 400px;
+    justify-self: stretch;
+    min-width: 400px;
     display: flex;
     gap: 1em;
+    background-color: var(--review-item-background);
+    padding: 1em;
+    border-radius: .3em;
 }
 
 div.review-item-image-container {
