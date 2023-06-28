@@ -21,10 +21,12 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: nightly
+          profile: minimal
           components: clippy
           target: ${{ inputs.target }}
           override: true
-            
+    - name: Install Build Dependencies
+      run: sudo apt-get update && sudo apt-get install pkg-config musl-tools libssl-dev
     - name: Build
       run: cargo build --release --target ${{ inputs.target }} --verbose
     - name: Run tests
