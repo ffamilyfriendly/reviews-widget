@@ -96,7 +96,7 @@
             <button onclick="reloadIframe(getEntId(), 0)">reload</button>
             <button onclick="reloadIframe(getEntId(), 30)">reload x30</button>
         </div>
-        <iframe loading="lazy" style="border:0;" width="100%" src="http://0.0.0.0:3001/embed/870715447136366662">
+        <iframe loading="lazy" style="border:0;" width="100%" src="https://widget.familyfriendly.xyz/embed/870715447136366662">
             your browser does not support iframes
         </iframe>
         <progress max="30" value="0"></progress>
@@ -130,11 +130,11 @@
         const getEntId = () => {
             const entityId = document.getElementById("entityId").value.trim()
             if(entityId === "159985870458322944") window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank")
-            return "http://0.0.0.0:3001/embed/" + entityId + "?limit=10"
+            return "https://widget.familyfriendly.xyz/embed/" + entityId + "?limit=10"
         }
 
-        const reloadIframe = (url = "http://0.0.0.0:3001/embed/870715447136366662?limit=10", times = 0) => {
-            if(!url && !lastQueriedUrl) lastQueriedUrl = "http://0.0.0.0:3001/embed/870715447136366662?limit=10"
+        const reloadIframe = (url = "https://widget.familyfriendly.xyz/embed/870715447136366662?limit=10", times = 0) => {
+            if(!url && !lastQueriedUrl) lastQueriedUrl = "https://widget.familyfriendly.xyz/embed/870715447136366662?limit=10"
             if(url && (url !== lastQueriedUrl)) {
                 lowestLoad = Number.MAX_SAFE_INTEGER
                 highestLoad = 0
