@@ -33,4 +33,4 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.DEPLOY_TOKEN }}
-        file: ./target/x86_64-unknown-linux-gnu/release/okapi/reviews_widget
+        file: ./target/${{ inputs.target }}/release/reviews_widget
