@@ -7,6 +7,13 @@ on:
         description: 'what system the binary is for'
         required: false
         default: 'x86_64-unknown-linux-gnu'
+      asset_name:
+        description: 'what to call the file'
+        required: true
+        default: 'reviews-widget-vx.x.x'
+      body:
+        description: 'the releast text'
+        required: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -36,3 +43,5 @@ jobs:
       with:
         repo_token: ${{ secrets.DEPLOY_TOKEN }}
         file: ./target/${{ inputs.target }}/release/reviews_widget
+        asset_name: ${{ inputs.asset_name }}
+        body: ${{ inputs.body }}
