@@ -1,10 +1,19 @@
 name: Rust
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'what system the binary is for'
+        required: false
+        default: 'x86_64-unknown-linux-gnu'
+      asset_name:
+        description: 'what to call the file'
+        required: true
+        default: 'reviews-widget-vx.x.x'
+      body:
+        description: 'the releast text'
+        required: false
 
 env:
   CARGO_TERM_COLOR: always
@@ -19,10 +28,21 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
           toolchain: nightly
+          profile: minimal
           components: clippy
+          target: ${{ inputs.target }}
           override: true
-            
+    - name: Install Build Dependencies
+      run: sudo apt-get update && sudo apt-get install pkg-config musl-tools libssl-dev
     - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        args: --release --target ${{ inputs.target }}
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.DEPLOY_TOKEN }}
+        file: ./target/${{ inputs.target }}/release/reviews_widget
+        asset_name: ${{ inputs.asset_name }}
+        body: ${{ inputs.body }}
