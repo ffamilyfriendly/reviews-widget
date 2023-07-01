@@ -16,7 +16,8 @@ pub async fn generate_embed( id: String, css: Option<String>, limit: Option<usiz
     match shared_client.client.lock().await.get_entity(id).await {
         Ok(mut entity_listing) => {
             entity_listing.reviews.truncate(reviews_limit);
-            Template::render("reviews-widget", context!{ avg_votes: entity_listing.ratings_avg, reviews_count: entity_listing.reviews_count, reviews: entity_listing.reviews, css_file } )
+            let t = Template::render("reviews-widget", context!{ avg_votes: entity_listing.ratings_avg, reviews_count: entity_listing.reviews_count, reviews: entity_listing.reviews, css_file } );
+            t
         },
         Err(e) => {
             println!("something went dookie: {}", e);

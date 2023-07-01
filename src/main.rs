@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate rocket;
 
+use chrono::Duration;
 use rocket::tokio::sync::Mutex;
 use rocket_dyn_templates::Template;
 use rocket::shield::Shield;
@@ -24,10 +25,12 @@ fn get_shield() -> Shield {
 
 #[launch]
 fn rocket() -> _ {
+
     rocket::build()
         .manage( AppState { client: Mutex::new(fetcher::fetch::TopClient::new()) } )
         .attach(Template::fairing())
         .attach(get_shield())
+        .attach(http::headers::Headers::new(Duration::hours(6)))
         .mount("/", http::routes())
         .register("/", catchers![rocket_governor::rocket_governor_catcher])
 }
