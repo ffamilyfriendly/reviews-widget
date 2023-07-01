@@ -6,7 +6,7 @@ Herein is the code for the top.gg review widget demo. The code is written in rus
 |---|---|---|
 |iframe widget|a simple and easy to use iframe widget that can be implemented in a matter of minutes|done|
 |PNG widget|the idea with the PNG widget is to allow people to embed a overview of their reviews in places where an iframe could not be used. For example on a github markdown file like this one|not started|
-|ratelimits|Right now it'd be trivial to DOS my widget by requesting random entity IDs. This would probably overwhelm my poor server and would absolutely get me ratelimited by top.gg. This is not yet implemented as this project is just an example for the AMA|not started|
+|ratelimits|Right now it'd be trivial to DOS my widget by requesting random entity IDs. This would probably overwhelm my poor server and would absolutely get me ratelimited by top.gg. |done|
 |response caching|Right now only API responses directly from top.gg are cached. I do also want to cache the rendered handlebar files as that would lower the response time and make my server happier|not started|
 
 ## Implementing

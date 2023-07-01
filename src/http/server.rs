@@ -2,10 +2,13 @@ use std::path::Path;
 
 use rocket::{State, fs::NamedFile};
 use rocket_dyn_templates::{Template, context};
+use rocket_governor::RocketGovernor;
 use crate::{AppState};
 
+use super::ratelimits::RateLimitGuard;
+
 #[get("/embed/<id>?<css>&<limit>")]
-pub async fn generate_embed( id: String, css: Option<String>, limit: Option<usize>, state: &State<AppState> ) -> Template {
+pub async fn generate_embed( id: String, css: Option<String>, limit: Option<usize>, state: &State<AppState>, _ratelimits: RocketGovernor<'_, RateLimitGuard> ) -> Template {
     let shared_client = state.inner();
     let css_file = css.unwrap_or("/standard.css".into());
     let reviews_limit = limit.unwrap_or(10);

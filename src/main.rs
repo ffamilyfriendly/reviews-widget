@@ -7,6 +7,7 @@ use rocket::tokio::sync::Mutex;
 use rocket_dyn_templates::Template;
 use rocket::shield::Shield;
 use rocket::shield::{Frame};
+use rocket_governor;
 
 
 pub mod fetcher;
@@ -28,4 +29,5 @@ fn rocket() -> _ {
         .attach(Template::fairing())
         .attach(get_shield())
         .mount("/", http::routes())
+        .register("/", catchers![rocket_governor::rocket_governor_catcher])
 }

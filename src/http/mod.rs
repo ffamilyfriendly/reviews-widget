@@ -1,6 +1,7 @@
 use rocket::Route;
 
 pub mod server;
+pub mod ratelimits;
 
 pub fn routes() -> Vec<Route> {
     routes![
