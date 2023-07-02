@@ -246,6 +246,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     editor.session.setMode("ace/mode/css")
 
+    editor.getSession().on("change", () => {
+        updateStyle()
+    })
+
     generateButtons()
     updateStyle()
 })
