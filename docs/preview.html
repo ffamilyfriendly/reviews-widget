@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
+    <link href=" https://cdn.jsdelivr.net/npm/ace-builds@1.23.1/css/ace.min.css " rel="stylesheet">
+    <link rel="stylesheet" href="./css/preview.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src=" https://cdn.jsdelivr.net/npm/ace-builds@1.23.1/src-min-noconflict/ace.min.js "></script>
+    <style id="preview-style">
+
+    </style>
+</head>
+<body>
+    
+    <div id="divided">
+            <div id="glance">
+                <h1>Colours</h1>
+                <div id="variables">
+
+                </div>
+            </div>
+            <div id="editor" >
+                @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&display=swap');
+    
+                :root {
+                    /* as you can tell this is not valid css. This is parsed by js and changed into valid css */
+                    {{text-colour}}
+                    {{review-image-fallback-bg}}
+                    {{star-colour}}
+                    {{star-not-filled-colour}}
+                    {{star-outline}}
+                    {{review-item-background}}
+                }
+                
+                *, *::before, *::after {
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                    word-wrap: break-word;
+                    font-family: "Manrope", -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+                }
+                
+                body, html {
+                    background-color: transparent;
+                    height: 100vh;
+                    overflow-x: hidden;
+                }
+                
+                
+                div#reviews-list {
+                    color: var(--text-colour);
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                    height: 100%;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+                    gap: 1rem;
+                }
+                
+                
+                div.review-item {
+                    justify-self: stretch;
+                    min-width: 400px;
+                    display: flex;
+                    gap: 1em;
+                    background-color: var(--review-item-background);
+                    padding: 1em;
+                    border-radius: .3em;
+                }
+                
+                div.review-item-image-container {
+                    height: 64px;
+                    width: 64px;
+                    border-radius: 50%;
+                }
+                
+                img.review-item-image, img.review-item-image::after, img.review-item-image::before {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 64px;
+                    width: 64px;
+                    border-radius: 50%;
+                    background-color: var(--review-image-fallback-bg);
+                }
+                
+                img.review-item-image[data-fallback]::before {
+                    display: none;
+                }
+                
+                img.review-item-image[data-fallback]::after {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-weight: bold;
+                    content: attr(data-fallback);
+                }
+                
+                div.review-item-stack {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                
+                div.review-item-header {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+                
+                p.review-item-username {
+                    font-size: 1.5em;
+                    font-weight: bold;
+                }
+                
+                div.review-item-ratings-row {
+                    display: flex;
+                    gap: 1rem;
+                }
+                
+                div.review-item-stars-row {
+                    display: inline-flex;
+                }
+                
+                svg.review-item-star {
+                    height: 20px;
+                    stroke: var(--star-outline);
+                    fill: var(--star-not-filled-colour);
+                    stroke-width: 2px;
+                }
+                
+                svg.review-item-star.filled {
+                    fill: var(--star-colour);
+                }
+        </div>
+        <div id="preview-content"></div>
+    </div>
+    <script src="./js/preview.js"></script>
+</body>
+</html>
