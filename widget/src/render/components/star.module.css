@@ -1,0 +1,21 @@
+.row {
+  width: 100%;
+  display: flex;
+  gap: 0.1em;
+  align-items: center;
+}
+
+.unfilled {
+  --widget-star-fill: none;
+}
+
+.row path {
+  fill: red;
+  fill: var(--widget-star-fill);
+  stroke: var(--widget-star-stroke);
+  stroke-width: 1;
+}
+
+.span {
+  display: flex;
+}

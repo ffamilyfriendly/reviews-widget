@@ -1,0 +1,12 @@
+.widget {
+  background-color: transparent;
+  outline: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.icon {
+  position: relative;
+  flex-grow: 0;
+}

@@ -1,0 +1,19 @@
+.widget {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  overflow: hidden;
+  padding-right: 0.5em;
+}
+
+.imageContainer {
+  padding: 0.5em;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  background-color: var(--widget-accent);
+}
+
+.parent {
+  display: inline-block;
+}

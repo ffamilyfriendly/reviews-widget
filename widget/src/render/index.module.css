@@ -1,0 +1,162 @@
+.manrope-200 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.manrope-300 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.manrope-400 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.manrope-500 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.manrope-600 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.manrope-700 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.manrope-800 {
+  font-family:
+    "Manrope",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif,
+    Apple Color Emoji,
+    Segoe UI Emoji;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.widgetLink {
+  display: contents;
+  color: inherit;
+}
+
+.barebones,
+.barebones * {
+  box-sizing: border-box;
+}
+
+.barebones {
+  --topgg-background: #121212;
+  --topgg-red: #ff3366;
+  --topgg-purple: #8957ff;
+  --topgg-blue: #00bbff;
+  --topgg-green: #00cc88;
+  --topgg-yellow: #ffbb00;
+  --topgg-orange: #ff6b00;
+
+  --topgg-default: #16141e;
+
+  /**
+    This is where variables are set.
+    the --set-widget-* variables are intended to let implementors choose their own values if they desire
+  */
+  --widget-accent: var(--set-widget-accent, var(--topgg-default));
+  --widget-background: var(--set-widget-background, var(--topgg-background));
+  --widget-star-stroke: var(--set-widget-star-stroke, #f36);
+  --widget-star-fill: var(--set-widget-star-fill, #f369);
+}
+
+.default {
+  background-color: var(--widget-background);
+  box-shadow: var(--widget-shadow);
+  outline: var(--widget-outline);
+}
+
+.dark {
+  color: white;
+  --widget-outline: 1px solid rgba(155, 155, 155, 0.2);
+}
+
+.light {
+  --widget-background: var(--set-widget-background, white);
+  --widget-accent: var(--set-widget-accent, var(--topgg-default));
+
+  --widget-shadow:
+    rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+  color: black;
+}

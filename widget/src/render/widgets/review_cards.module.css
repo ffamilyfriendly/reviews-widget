@@ -1,0 +1,86 @@
+.widget {
+  display: flex;
+}
+
+.aggregate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 1em;
+  width: 30%;
+}
+
+.reviewcard {
+  flex-grow: 1;
+  display: flex;
+  padding: 1em;
+  gap: 1em;
+}
+
+.reviewtext {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+}
+
+.reviewsparent {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: scroll;
+  border-left: 1px solid rgba(128, 128, 128, 0.218);
+}
+
+.reviewcardtop {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reviewtextcontent {
+  max-width: 20em;
+}
+
+.time {
+  font-size: small;
+  display: block;
+  width: 10em;
+}
+
+.barouter {
+  height: 0.5em;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.25em;
+  background-color: rgba(128, 128, 128, 0.45);
+}
+
+.barinner {
+  background-color: var(--topgg-red);
+  height: 100%;
+  border-radius: 0.25em;
+}
+
+.breakdown {
+  display: grid;
+  grid-template-columns: max-content auto max-content;
+  grid-auto-flow: row;
+  align-items: center;
+  column-gap: 0.5em;
+}
+
+.avatar {
+  background-color: rgba(128, 128, 128, 0.2);
+}
+
+@media screen and (max-width: 800px) {
+  .widget {
+    flex-direction: column;
+  }
+
+  .aggregate {
+    width: 100%;
+  }
+}

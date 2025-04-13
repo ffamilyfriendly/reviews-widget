@@ -1,0 +1,40 @@
+.widget {
+  display: flex;
+  gap: 0.5em;
+  min-width: fit-content;
+  min-height: fit-content;
+  width: fit-content;
+  overflow: hidden;
+}
+
+.info {
+  height: 100%;
+  overflow: hidden;
+  padding: 0.1em;
+}
+
+.watermark {
+  height: 2em;
+  flex-grow: 1;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.column > h2 {
+  padding: 0;
+  margin: 0;
+}
+
+.imageContainer {
+  height: 100%;
+  display: flex;
+  padding: 0.5em;
+}
+
+.scoreBreakdown {
+  opacity: 0.7;
+}

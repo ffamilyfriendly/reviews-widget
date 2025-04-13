@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="//localhost:8081/bundle.js" async></script>
+  </head>
+  <style>
+    *,
+    *::backdrop,
+    *::after {
+      padding: 0;
+      margin: 0;
+    }
+
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    body > div {
+      min-height: 100vh;
+      padding: 2em;
+      width: 50%;
+    }
+
+    #dark {
+      background-color: black;
+      color: white;
+    }
+
+    @media screen and (max-width: 800px) {
+      body {
+        flex-direction: column;
+      }
+
+      body > div {
+        width: 100%;
+        padding: 0;
+      }
+    }
+  </style>
+  <body>
+    <div>
+      <h1>Light</h1>
+
+      <h2>Error</h2>
+      <div
+        class="topgg-widget"
+        data-botid="159985870458322244"
+        data-style="simplistic"
+        data-hide-attribution="yes"
+        data-borderRadius=".3em"
+        data-theme="light"
+      ></div>
+
+      <h2>simplistic</h2>
+      <div
+        class="topgg-widget"
+        data-botid="870715447136366662"
+        data-style="simplistic"
+        data-hide-attribution="yes"
+        data-borderRadius=".3em"
+        data-theme="light"
+      ></div>
+
+      <h2>button</h2>
+      <div
+        class="topgg-widget"
+        data-botid="432610292342587392"
+        data-style="button"
+        data-borderRadius=".3em"
+        data-hide-attribution="yes"
+        data-theme="light"
+      ></div>
+
+      <h2>reviews</h2>
+      <div
+        class="topgg-widget"
+        data-botid="870715447136366662"
+        data-style="reviewcards"
+        data-borderRadius=".3em"
+        data-hide-attribution="yes"
+        data-height="20em"
+        data-theme="light"
+      ></div>
+
+      <img
+        src="http://localhost:8080/widget/img/432610292342587392.svg"
+        height="70px"
+      />
+    </div>
+
+    <div id="dark">
+      <h1>dark</h1>
+
+      <h2>Error</h2>
+      <div
+        class="topgg-widget"
+        data-botid="159985870458322244"
+        data-style="simplistic"
+        data-hide-attribution="yes"
+        data-borderRadius=".3em"
+      ></div>
+
+      <h2>simplistic</h2>
+      <div
+        class="topgg-widget"
+        data-botid="870715447136366662"
+        data-style="simplistic"
+        data-hide-attribution="yes"
+        data-borderRadius=".3em"
+      ></div>
+
+      <h2>button</h2>
+      <div
+        class="topgg-widget"
+        data-botid="432610292342587392"
+        data-style="button"
+        data-borderRadius=".3em"
+        data-hide-attribution="yes"
+      ></div>
+
+      <h2>Reviews</h2>
+      <div
+        class="topgg-widget"
+        data-botid="432610292342587392"
+        data-style="reviewcards"
+        data-borderRadius=".3em"
+        data-hide-attribution="yes"
+        data-height="20em"
+      ></div>
+    </div>
+  </body>
+</html>
