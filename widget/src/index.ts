@@ -3,7 +3,7 @@ import { check_attributes } from "./check_attributes";
 import render from "./render";
 import { render_error } from "./render/error";
 
-(function () {
+function render_widgets() {
   const elements = document.querySelectorAll("div.topgg-widget");
 
   elements.forEach((element) => {
@@ -32,6 +32,7 @@ import { render_error } from "./render/error";
     let is_ok = check_attributes(widget_attributes);
 
     if (is_ok.ok) {
+      element.innerHTML = "";
       render(element, is_ok.data).catch((e) => {
         render_error(element, e);
       });
@@ -39,4 +40,16 @@ import { render_error } from "./render/error";
       render_error(element, is_ok.data as Error);
     }
   });
-})();
+}
+
+render_widgets();
+
+declare global {
+  interface Window {
+    topgg: {};
+  }
+}
+
+window.topgg = {
+  render_widgets,
+};
