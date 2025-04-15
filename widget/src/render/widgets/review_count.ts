@@ -1,8 +1,6 @@
 import { I_Renderer } from "..";
 import { ReturnData } from "../../api";
 import { SafeAttributes } from "../../check_attributes";
-import { create_image } from "../components/image";
-import { create_star_row } from "../components/star";
 import { create_watermark } from "../components/watermark";
 import { display_count } from "../utils";
 import styling from "./review_count.module.css";

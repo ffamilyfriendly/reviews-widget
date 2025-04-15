@@ -28,7 +28,7 @@ export const renderers: { [index: string]: I_Renderer } = {
 
 function create_attribution() {
   const main = document.createElement("small");
-  main.innerHTML = `provided by <a href="https://botsuite.co">botsuite</a>. Data from <a href="https://top.gg">top.gg</a>`;
+  main.innerHTML = `provided by <a href="https://botsuite.co/topgg-widget">botsuite</a>. Data from <a href="https://top.gg">top.gg</a>`;
   return main;
 }
 

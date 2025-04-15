@@ -1,4 +1,4 @@
-export const URL_BASE = "http://localhost:8080";
+export const URL_BASE = "https://widget.botsuite.co";
 
 export const ENDPOINTS = {
   GET_BASE_DATA: (bot_id: string) => `${URL_BASE}/widget/${bot_id}` as const,
