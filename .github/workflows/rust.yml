@@ -1,8 +1,6 @@
 name: Rust CI and Release
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:  # Allows manual triggering
 
 env:
@@ -51,5 +49,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./server/target/release/reviews-widget
-        asset_name: my_project-linux
+        asset_name: widget-linux
         asset_content_type: application/octet-stream
