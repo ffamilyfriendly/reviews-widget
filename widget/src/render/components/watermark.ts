@@ -1,9 +1,10 @@
+import { URL_BASE } from "../../config";
 import { create_image } from "./image";
 import styling from "./watermark.module.css";
 
 const WATERMARK = {
-  DARK: "http://localhost:8080/static/topgg_logo.png",
-  LIGHT: "http://localhost:8080/static/topgg_logo_black.png",
+  DARK: `${URL_BASE}/cdn/topgg_logo.png`,
+  LIGHT: `${URL_BASE}/cdn/topgg_logo_black.png`,
 };
 
 export function create_watermark(theme: "light" | "dark") {
