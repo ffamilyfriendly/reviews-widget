@@ -31,8 +31,12 @@ function render_widgets() {
 
     let is_ok = check_attributes(widget_attributes);
 
+    // We're making sure the classlist and content is empty in case a render happens after the initial render
+    // this is really only used rn for the widget visualiser but ykyk
+    element.innerHTML = "";
+    element.classList = "topgg-widget";
+
     if (is_ok.ok) {
-      element.innerHTML = "";
       render(element, is_ok.data).catch((e) => {
         render_error(element, e);
       });

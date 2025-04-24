@@ -13,8 +13,9 @@ struct Path {
 
 fn validate_discord_id(id: &str) -> Result<(), ValidationError> {
     
-    if !(id.len() == 17 || id.len() == 18) {
-        return Err(ValidationError::new("is not 17 OR 18 characters"))
+    let range = 17..19;
+    if !range.contains(&id.len()) {
+        return Err(ValidationError::new("is not 17 - 19 characters"))
     }
 
     if !id.parse::<u64>().is_ok() {
