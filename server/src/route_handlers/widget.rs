@@ -13,7 +13,7 @@ struct Path {
 
 fn validate_discord_id(id: &str) -> Result<(), ValidationError> {
     
-    let range = 17..19;
+    let range = 17..20;
     if !range.contains(&id.len()) {
         return Err(ValidationError::new("is not 17 - 19 characters"))
     }
